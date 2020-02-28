@@ -12,9 +12,11 @@
  *   express or implied. See the License for the specific language governing
  *   permissions and limitations under the License.
  */
+
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'elasticsearch.testclusters'
 apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'jacoco'
 if (!System.properties.containsKey('tests.rest.cluster') && !System.properties.containsKey('tests.cluster')) {
@@ -77,28 +79,27 @@ dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
 
 // See package README.md for details on using these tasks.
-(1..3).each { i ->
-    def _numNodes = findProperty('numNodes') as Integer ?: 1
-    tasks.create(name : "runMultiNode$i", type: org.elasticsearch.gradle.test.RunTask) {
-        daemonize = true
-        numNodes = _numNodes
-        setting 'node.name', "multi-node-$i"
-        setting 'http.port', '9200-9300'
-        setting 'transport.tcp.port', '9300-9400'
-        clusterName = 'multi-node-run'
-        plugin project.path
-        distribution = "oss-zip"
-    }
-    
-    tasks.create(name: "startMultiNode$i") {
-        if (_numNodes == 1) {
-            dependsOn "runMultiNode${i}#start"
-        } else {
-            (0..<_numNodes).each { n -> dependsOn "runMultiNode${i}#node${n}.start" }
-        }
-    }
-}
-task startMultiNode(dependsOn: startMultiNode1)
+//(1..3).each { i ->
+//    def _numNodes = findProperty('numNodes') as Integer ?: 1
+//    tasks.create(name : "runMultiNode$i", type: org.elasticsearch.gradle.testclusters.RunTask) {
+//        numberOfNodes = _numNodes
+//        setting 'node.name', "multi-node-$i"
+//        setting 'http.port', '9200-9300'
+//        setting 'transport.tcp.port', '9300-9400'
+//        clusterName = 'multi-node-run'
+//        plugin project.path
+//        distribution = "oss-zip"
+//    }
+//
+//    tasks.create(name: "startMultiNode$i") {
+//        if (_numNodes == 1) {
+//            dependsOn "runMultiNode${i}#start"
+//        } else {
+//            (0..<_numNodes).each { n -> dependsOn "runMultiNode${i}#node${n}.start" }
+//        }
+//    }
+//}
+//task startMultiNode(dependsOn: startMultiNode1)
 
 def es_tmp_dir = rootProject.file('build/private/es_tmp').absoluteFile
 es_tmp_dir.mkdirs()
@@ -120,11 +121,10 @@ integTestRunner {
     }
 }
 
-integTestCluster {
-    distribution = "oss-zip"
+testClusters.integTest {
+    testDistribution = "OSS"
 }
 run {
-    distribution = "oss-zip"
 }
 
 apply from: '../build-tools/pkgbuild.gradle'

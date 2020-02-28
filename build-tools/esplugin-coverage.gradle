@@ -53,8 +53,8 @@ task dummyIntegTest(type: Test) {
     }
 }
 
-integTestCluster {
-    jvmArgs += " ${dummyIntegTest.jacoco.getAsJvmArg()}"
+testClusters.integTest {
+    jvmArgs " ${dummyIntegTest.jacoco.getAsJvmArg()}"
     systemProperty 'com.sun.management.jmxremote', "true"
     systemProperty 'com.sun.management.jmxremote.authenticate', "false"
     systemProperty 'com.sun.management.jmxremote.port', "7777"
@@ -65,8 +65,8 @@ integTestCluster {
 jacocoTestReport {
     dependsOn integTest, test
     executionData dummyTest.jacoco.destinationFile, dummyIntegTest.jacoco.destinationFile
-    sourceDirectories = sourceSets.main.allSource
-    classDirectories = sourceSets.main.output
+    sourceDirectories.setFrom sourceSets.main.allSource
+    classDirectories.setFrom sourceSets.main.output
     reports {
         html.enabled = true // human readable
         xml.enabled = true // for coverlay
@@ -88,7 +88,7 @@ task dumpCoverage {
     }
 }
 project.gradle.projectsEvaluated {
-    dumpCoverage.dependsOn integTestRunner
-    tasks['integTestCluster#stop'].dependsOn dumpCoverage
+//    dumpCoverage.dependsOn integTestRunner
+//    tasks['integTestCluster#stop'].dependsOn dumpCoverage
     jacocoTestReport.dependsOn dumpCoverage
 }
