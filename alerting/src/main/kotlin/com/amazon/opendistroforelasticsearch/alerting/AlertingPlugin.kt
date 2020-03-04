@@ -38,6 +38,7 @@ import com.amazon.opendistroforelasticsearch.alerting.settings.AlertingSettings
 import org.elasticsearch.action.ActionRequest
 import org.elasticsearch.action.ActionResponse
 import org.elasticsearch.client.Client
+import org.elasticsearch.client.OriginSettingClient
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver
 import org.elasticsearch.cluster.node.DiscoveryNodes
 import org.elasticsearch.cluster.service.ClusterService
@@ -132,13 +133,14 @@ internal class AlertingPlugin : PainlessExtension, ActionPlugin, ScriptPlugin, P
         nodeEnvironment: NodeEnvironment,
         namedWriteableRegistry: NamedWriteableRegistry
     ): Collection<Any> {
+        val enrichClient = OriginSettingClient(client, "enrich")
         // Need to figure out how to use the Elasticsearch DI classes rather than handwiring things here.
         val settings = environment.settings()
-        alertIndices = AlertIndices(settings, client, threadPool, clusterService)
-        runner = MonitorRunner(settings, client, threadPool, scriptService, xContentRegistry, alertIndices, clusterService)
-        scheduledJobIndices = ScheduledJobIndices(client.admin(), clusterService)
+        alertIndices = AlertIndices(settings, enrichClient, threadPool, clusterService)
+        runner = MonitorRunner(settings, enrichClient, threadPool, scriptService, xContentRegistry, alertIndices, clusterService)
+        scheduledJobIndices = ScheduledJobIndices(enrichClient.admin(), clusterService)
         scheduler = JobScheduler(threadPool, runner)
-        sweeper = JobSweeper(environment.settings(), client, clusterService, threadPool, xContentRegistry, scheduler, ALERTING_JOB_TYPES)
+        sweeper = JobSweeper(environment.settings(), enrichClient, clusterService, threadPool, xContentRegistry, scheduler, ALERTING_JOB_TYPES)
         this.threadPool = threadPool
         this.clusterService = clusterService
         return listOf(sweeper, scheduler, runner, scheduledJobIndices)

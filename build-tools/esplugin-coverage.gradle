@@ -53,13 +53,13 @@ task dummyIntegTest(type: Test) {
     }
 }
 
-integTestCluster {
-    jvmArgs += " ${dummyIntegTest.jacoco.getAsJvmArg()}"
-    systemProperty 'com.sun.management.jmxremote', "true"
-    systemProperty 'com.sun.management.jmxremote.authenticate', "false"
-    systemProperty 'com.sun.management.jmxremote.port', "7777"
-    systemProperty 'com.sun.management.jmxremote.ssl', "false"
-    systemProperty 'java.rmi.server.hostname', "127.0.0.1"
+testClusters.integTest {
+    jvmArgs " ${dummyIntegTest.jacoco.getAsJvmArg()}"
+    setting 'com.sun.management.jmxremote', "true"
+    setting 'com.sun.management.jmxremote.authenticate', "false"
+    setting 'com.sun.management.jmxremote.port', "7777"
+    setting 'com.sun.management.jmxremote.ssl', "false"
+    setting 'java.rmi.server.hostname', "127.0.0.1"
 }
 
 jacocoTestReport {
@@ -88,7 +88,7 @@ task dumpCoverage {
     }
 }
 project.gradle.projectsEvaluated {
-    dumpCoverage.dependsOn integTestRunner
-    tasks['integTestCluster#stop'].dependsOn dumpCoverage
+//    dumpCoverage.dependsOn integTestRunner
+//    tasks['integTestCluster#stop'].dependsOn dumpCoverage
     jacocoTestReport.dependsOn dumpCoverage
 }
